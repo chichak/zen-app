@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>neuro·reset — Pratique quotidienne</title>
+  <meta name="description" content="Renforce les 7 principes neurologiques chaque jour.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80' font-family='serif' font-style='italic' fill='%23c08a3e'%3E◐%3C/text%3E%3C/svg%3E">
+
+  <!-- Supabase via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ============================================================
+       AUTH SCREEN
+       ============================================================ -->
+  <div class="auth-screen" id="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo" id="auth-title">neuro<span>·</span>reset</div>
+      <div class="auth-subtitle" id="auth-subtitle">Reprends ta pratique quotidienne.</div>
+
+      <div class="auth-error" id="auth-error" style="display:none;"></div>
+
+      <form id="auth-form" autocomplete="off">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" required minlength="3" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" required minlength="6" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn full" id="auth-submit">Se connecter</button>
+      </form>
+
+      <div class="auth-toggle" id="auth-toggle-text">
+        Pas encore de compte ? <button type="button" id="auth-toggle-btn" class="btn-link">S'inscrire</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       APP PRINCIPALE
+       ============================================================ -->
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">neuro<span>·</span>reset</div>
+        <nav class="nav">
+          <button class="nav-btn active" data-page="today">Aujourd'hui</button>
+          <button class="nav-btn" data-page="dashboard">Tableau de bord</button>
+          <button class="nav-btn" data-page="journal">Journal</button>
+          <button class="nav-btn" data-page="principles">Les 7 principes</button>
+        </nav>
+        <div class="user-tag">
+          <span id="user-tag">@user</span>
+          <button class="logout-btn" id="logout-btn">Quitter</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- ===================== PAGE : AUJOURD'HUI ===================== -->
+      <section class="page active" id="page-today">
+        <div class="page-header">
+          <div class="eyebrow">Pratique quotidienne</div>
+          <h1>Recâble ton cerveau, un jour à la fois.</h1>
+          <p>Choisis un principe, pratique-le pendant quelques minutes, marque-le comme accompli. La régularité crée la transformation.</p>
+        </div>
+
+        <div class="today-intro">
+          <div class="today-date" id="today-date"></div>
+          <div class="today-quote" id="today-quote"></div>
+          <div class="today-progress">
+            <span id="today-progress-count" class="mono">0 / 7 pratiqués</span>
+            <div class="today-progress-track"><div class="today-progress-fill" id="today-progress-fill" style="width:0%;"></div></div>
+          </div>
+          <div class="mood-block">
+            <span class="mood-label">Humeur avant</span>
+            <div class="mood-scale" id="mood-before"></div>
+          </div>
+          <div class="mood-block" style="border-top:none;padding-top:0;margin-top:0.5rem;">
+            <span class="mood-label">Humeur après</span>
+            <div class="mood-scale" id="mood-after"></div>
+          </div>
+        </div>
+
+        <div class="principles-grid" id="principles-grid"></div>
+      </section>
+
+      <!-- ===================== PAGE : DASHBOARD ===================== -->
+      <section class="page" id="page-dashboard">
+        <div class="page-header">
+          <div class="eyebrow">Progrès</div>
+          <h1>Tableau de bord</h1>
+          <p>Visualise ta constance. La neuroplasticité opère dans la répétition, pas dans l'intensité.</p>
+        </div>
+        <div id="dashboard-content"></div>
+      </section>
+
+      <!-- ===================== PAGE : JOURNAL ===================== -->
+      <section class="page" id="page-journal">
+        <div class="page-header">
+          <div class="eyebrow">Réflexions</div>
+          <h1>Journal de pratique</h1>
+          <p>Écrire ralentit l'esprit et grave la pratique. Note ce que tu as ressenti, vu, compris.</p>
+        </div>
+
+        <form class="journal-form" id="journal-form">
+          <div class="form-group">
+            <label for="journal-principle">Principe associé</label>
+            <select id="journal-principle" required></select>
+          </div>
+          <div class="form-group">
+            <label for="journal-content">Ta réflexion</label>
+            <textarea id="journal-content" placeholder="Ce que j'ai remarqué aujourd'hui…" required></textarea>
+          </div>
+          <button type="submit" class="btn">Enregistrer</button>
+        </form>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px dashed var(--line);padding-bottom:0.75rem;">
+          <span class="eyebrow">Entrées récentes</span>
+          <select id="journal-filter" style="background:transparent;border:1px solid var(--line);padding:0.4rem 0.7rem;font-family:inherit;color:var(--ink);font-size:0.85rem;"></select>
+        </div>
+        <div id="journal-list"></div>
+      </section>
+
+      <!-- ===================== PAGE : LES PRINCIPES ===================== -->
+      <section class="page" id="page-principles">
+        <div class="page-header">
+          <div class="eyebrow">Référence</div>
+          <h1>Les 7 principes</h1>
+          <p>Comprendre la science derrière la pratique. Reviens ici quand tu as besoin de te reconnecter au pourquoi.</p>
+        </div>
+        <div id="principles-detail"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============================================================
+       MODAL PRINCIPE (rempli dynamiquement)
+       ============================================================ -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="modal"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/principles.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
